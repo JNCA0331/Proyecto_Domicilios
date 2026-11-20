@@ -16,6 +16,7 @@ class MediadorAutenticacion:
         self.conexion = "usuarios.db"
         self.crear_tabla()
         self.crear_administrador_inicial()
+        self.crear_tablas_operacion()
 
     def conectar(self):
         return sqlite3.connect(self.conexion)
@@ -182,9 +183,279 @@ class MediadorAutenticacion:
                            WHERE rol = ?
                            """, (rol,))
 
-            usuarios = cursor.fetchall()
+            return cursor.fetchall()
 
-            return usuarios
+        finally:
+            conexion.close()
+
+    def crear_tablas_operacion(self):
+
+        conexion = self.conectar()
+        cursor = conexion.cursor()
+
+        cursor.execute("""
+                       CREATE TABLE IF NOT EXISTS solicitudes
+                       (
+                           id
+                           INTEGER
+                           PRIMARY
+                           KEY
+                           AUTOINCREMENT,
+                           restaurante
+                           TEXT
+                           NOT
+                           NULL,
+                           destinatario
+                           TEXT
+                           NOT
+                           NULL,
+                           telefono
+                           TEXT
+                           NOT
+                           NULL,
+                           direccion
+                           TEXT
+                           NOT
+                           NULL,
+                           instrucciones
+                           TEXT,
+                           tarifa
+                           REAL
+                           NOT
+                           NULL,
+                           estado
+                           TEXT
+                           DEFAULT
+                           'Generada',
+                           domiciliario
+                           TEXT,
+                           fecha
+                           TEXT
+                           DEFAULT
+                           CURRENT_TIMESTAMP
+                       )
+                       """)
+
+        cursor.execute("""
+                       CREATE TABLE IF NOT EXISTS pagos
+                       (
+                           id
+                           INTEGER
+                           PRIMARY
+                           KEY
+                           AUTOINCREMENT,
+                           solicitud_id
+                           INTEGER
+                           NOT
+                           NULL,
+                           restaurante
+                           TEXT
+                           NOT
+                           NULL,
+                           domiciliario
+                           TEXT
+                           NOT
+                           NULL,
+                           monto_total
+                           REAL
+                           NOT
+                           NULL,
+                           porcentaje_comision
+                           REAL
+                           NOT
+                           NULL,
+                           comision
+                           REAL
+                           NOT
+                           NULL,
+                           monto_domiciliario
+                           REAL
+                           NOT
+                           NULL,
+                           estado
+                           TEXT
+                           DEFAULT
+                           'Pendiente',
+                           fecha
+                           TEXT
+                           DEFAULT
+                           CURRENT_TIMESTAMP
+                       )
+                       """)
+
+        cursor.execute("""
+                       CREATE TABLE IF NOT EXISTS configuracion_financiera
+                       (
+                           id
+                           INTEGER
+                           PRIMARY
+                           KEY,
+                           porcentaje_comision
+                           REAL
+                           NOT
+                           NULL
+                       )
+                       """)
+
+        cursor.execute("""
+                       INSERT
+                       OR IGNORE INTO configuracion_financiera
+            (id, porcentaje_comision)
+            VALUES (1, 20)
+                       """)
+
+        conexion.commit()
+        conexion.close()
+
+    def listar_solicitudes(self):
+
+        conexion = self.conectar()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute("""
+                           SELECT id,
+                                  restaurante,
+                                  destinatario,
+                                  direccion,
+                                  tarifa,
+                                  estado,
+                                  domiciliario,
+                                  fecha
+                           FROM solicitudes
+                           ORDER BY id DESC
+                           """)
+
+            return cursor.fetchall()
+
+        finally:
+            conexion.close()
+
+    def listar_pagos(self):
+
+        conexion = self.conectar()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute("""
+                           SELECT id,
+                                  solicitud_id,
+                                  restaurante,
+                                  domiciliario,
+                                  monto_total,
+                                  porcentaje_comision,
+                                  comision,
+                                  monto_domiciliario,
+                                  estado,
+                                  fecha
+                           FROM pagos
+                           ORDER BY id DESC
+                           """)
+
+            return cursor.fetchall()
+
+        finally:
+            conexion.close()
+
+    def obtener_porcentaje_comision(self):
+
+        conexion = self.conectar()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute("""
+                           SELECT porcentaje_comision
+                           FROM configuracion_financiera
+                           WHERE id = 1
+                           """)
+
+            resultado = cursor.fetchone()
+
+            return resultado[0] if resultado else 20
+
+        finally:
+            conexion.close()
+
+    def actualizar_porcentaje_comision(self, porcentaje):
+
+        porcentaje = float(porcentaje)
+
+        if porcentaje < 10 or porcentaje > 20:
+            raise ValueError(
+                "La comisión debe estar entre 10% y 20%"
+            )
+
+        conexion = self.conectar()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute("""
+                           UPDATE configuracion_financiera
+                           SET porcentaje_comision = ?
+                           WHERE id = 1
+                           """, (porcentaje,))
+
+            conexion.commit()
+
+        finally:
+            conexion.close()
+
+    def registrar_solicitud(
+            self, restaurante, destinatario, telefono,
+            direccion, instrucciones, tarifa
+    ):
+
+        conexion = self.conectar()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute("""
+                           INSERT INTO solicitudes
+                           (restaurante, destinatario, telefono,
+                            direccion, instrucciones, tarifa)
+                           VALUES (?, ?, ?, ?, ?, ?)
+                           """, (
+                               restaurante, destinatario, telefono,
+                               direccion, instrucciones, tarifa
+                           ))
+
+            conexion.commit()
+            return cursor.lastrowid
+
+        finally:
+            conexion.close()
+
+    def registrar_pago(
+            self, solicitud_id, restaurante,
+            domiciliario, monto_total
+    ):
+
+        monto_total = float(monto_total)
+        porcentaje = self.obtener_porcentaje_comision()
+
+        if monto_total <= 0:
+            raise ValueError("El monto debe ser mayor que cero")
+
+        comision = monto_total * porcentaje / 100
+        monto_domiciliario = monto_total - comision
+
+        conexion = self.conectar()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute("""
+                           INSERT INTO pagos
+                           (solicitud_id, restaurante, domiciliario,
+                            monto_total, porcentaje_comision,
+                            comision, monto_domiciliario)
+                           VALUES (?, ?, ?, ?, ?, ?, ?)
+                           """, (
+                               solicitud_id, restaurante, domiciliario,
+                               monto_total, porcentaje, comision,
+                               monto_domiciliario
+                           ))
+
+            conexion.commit()
 
         finally:
             conexion.close()
