@@ -128,3 +128,20 @@ class Login:
         self.page.controls.clear()
         self.page.add(fondo)
         self.page.update()
+
+    def iniciar_sesion(self, e):
+
+        usuario = self.usuario.value
+        contrasena = self.contrasena.value
+
+        if not usuario or not contrasena:
+
+            self.mensaje.value = "Completa todos los campos"
+            self.mensaje.color = "#872A60"
+
+        else:
+
+            self.mensaje.value = "Validación pendiente de conectar"
+            self.mensaje.color = "#2A8751"
+
+        self.page.update()
