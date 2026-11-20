@@ -16,4 +16,4 @@ def main(page: ft.Page):
     login = Login(page)
     login.mostrar()
 
-ft.run(main)
+ft.run(main, assets_dir="recursos")

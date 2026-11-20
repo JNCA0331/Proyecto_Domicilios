@@ -41,8 +41,8 @@ class Login:
         logo = ft.Container(
             content=ft.Image(
                 src="logo.png",
-                width=100,
-                height=100,
+                width=140,
+                height=140,
                 fit=ft.BoxFit.CONTAIN
             ),
             bgcolor=self.ROSA,
