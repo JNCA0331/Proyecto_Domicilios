@@ -19,3 +19,21 @@ class Login:
             width=350
         )
 
+        self.contrasena = ft.TextField(
+            label="Contraseña",
+            prefix_icon=ft.Icons.LOCK,
+            password=True,
+            can_reveal_password=True,
+            border_radius=20,
+            border_color=self.MORADO,
+            focused_border_color=self.VERDE,
+            bgcolor=self.BLANCO,
+            width=350
+        )
+
+        self.mensaje = ft.Text(
+            "",
+            color=self.MORADO,
+            size=14
+        )
+
