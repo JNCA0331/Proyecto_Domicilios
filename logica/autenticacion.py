@@ -154,18 +154,37 @@ class MediadorAutenticacion:
 
         try:
             cursor.execute("""
-                INSERT INTO usuarios
-                (nombre, usuario, password_hash, salt, rol)
-                VALUES (?, ?, ?, ?, ?)
-            """, (
-                usuario.nombre,
-                usuario.usuario,
-                password_hash,
-                salt,
-                rol
-            ))
+                           INSERT INTO usuarios
+                               (nombre, usuario, password_hash, salt, rol)
+                           VALUES (?, ?, ?, ?, ?)
+                           """, (
+                               usuario.nombre,
+                               usuario.usuario,
+                               password_hash,
+                               salt,
+                               rol
+                           ))
 
             conexion.commit()
+
+        finally:
+            conexion.close()
+
+    def listar_usuarios(self, rol):
+
+        conexion = self.conectar()
+        cursor = conexion.cursor()
+
+        try:
+            cursor.execute("""
+                           SELECT id, nombre, usuario, rol
+                           FROM usuarios
+                           WHERE rol = ?
+                           """, (rol,))
+
+            usuarios = cursor.fetchall()
+
+            return usuarios
 
         finally:
             conexion.close()
