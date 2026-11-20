@@ -1,7 +1,11 @@
 import flet as ft
+from logica.autenticacion import MediadorAutenticacion
+from interfaz.administrador import AdministradorUI
+
 class Login:
     def __init__(self, page):
         self.page = page
+        self.mediador = MediadorAutenticacion()
         self.MORADO = "#872A60"
         self.VERDE = "#2A8751"
         self.MENTA = "#CFFFE2"
@@ -132,17 +136,44 @@ class Login:
 
     def iniciar_sesion(self, e):
 
-        usuario = self.usuario.value
+        usuario = self.usuario.value.strip()
         contrasena = self.contrasena.value
 
         if not usuario or not contrasena:
-
             self.mensaje.value = "Completa todos los campos"
-            self.mensaje.color = "#872A60"
+            self.mensaje.color = self.MORADO
+            self.page.update()
+            return
 
-        else:
+        usuario_autenticado = self.mediador.iniciar_sesion(
+            usuario,
+            contrasena
+        )
 
-            self.mensaje.value = "Validación pendiente de conectar"
-            self.mensaje.color = "#2A8751"
+        if usuario_autenticado is None:
+            self.mensaje.value = "Usuario o contraseña incorrectos"
+            self.mensaje.color = self.MORADO
+            self.page.update()
+            return
 
-        self.page.update()
+        rol = usuario_autenticado.obtener_rol()
+
+        if rol == "administrador":
+
+            administrador = AdministradorUI(
+                self.page,
+                usuario_autenticado
+            )
+
+            administrador.mostrar()
+
+        elif rol == "restaurante":
+
+            self.mensaje.value = "Panel de restaurante pendiente"
+            self.page.update()
+
+        elif rol == "domiciliario":
+
+            self.mensaje.value = "Panel de domiciliario pendiente"
+            self.page.update()
+
