@@ -36,4 +36,102 @@ class Login:
             color=self.MORADO,
             size=14
         )
+    def mostrar(self):
+
+        logo = ft.Container(
+            content=ft.Icon(
+                ft.Icons.DELIVERY_DINING,
+                size=75,
+                color=self.BLANCO
+            ),
+            bgcolor=self.MORADO,
+            width=120,
+            height=120,
+            border_radius=35,
+            alignment=ft.Alignment.CENTER
+        )
+
+        formulario = ft.Container(
+            content=ft.Column(
+                [
+                    logo,
+
+                    ft.Text(
+                        "¡Bienvenido!",
+                        size=34,
+                        weight=ft.FontWeight.BOLD,
+                        color=self.MORADO
+                    ),
+
+                    ft.Text(
+                        "Ingresa a tu plataforma de domicilios",
+                        size=15,
+                        color="#666666"
+                    ),
+
+                    ft.Container(height=15),
+
+                    self.usuario,
+
+                    self.contrasena,
+
+                    self.mensaje,
+
+                    ft.Container(
+                        content=ft.ElevatedButton(
+                            content=ft.Text(
+                                "INICIAR SESIÓN",
+                                weight=ft.FontWeight.BOLD,
+                                color=self.BLANCO
+                            ),
+
+                    ft.Text(
+                        "Sistema de gestión de domicilios",
+                        size=12,
+                        color="#888888"
+                    )
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=15,
+                tight=True
+            ),
+
+            bgcolor=self.BLANCO,
+            padding=45,
+            border_radius=35,
+            width=460,
+            shadow=ft.BoxShadow(
+                blur_radius=25,
+                color="#00000015",
+                offset=ft.Offset(0, 8)
+            )
+        )
+
+        fondo = ft.Container(
+            content=formulario,
+            bgcolor=self.MENTA,
+            expand=True,
+            alignment=ft.Alignment.CENTER
+        )
+
+        self.page.controls.clear()
+        self.page.add(fondo)
+        self.page.update()
+
+    def iniciar_sesion(self, e):
+
+        usuario = self.usuario.value
+        contrasena = self.contrasena.value
+
+        if not usuario or not contrasena:
+
+            self.mensaje.value = "Completa todos los campos"
+            self.mensaje.color = "#872A60"
+
+        else:
+
+            self.mensaje.value = "Validación pendiente de conectar"
+            self.mensaje.color = "#2A8751"
+
+        self.page.update()
 
