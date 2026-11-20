@@ -39,12 +39,13 @@ class Login:
 
     def mostrar(self):
         logo = ft.Container(
-            content=ft.Icon(
-                ft.Icons.DELIVERY_DINING,
-                size=75,
-                color=self.BLANCO
+            content=ft.Image(
+                src="logo.png",
+                width=100,
+                height=100,
+                fit=ft.BoxFit.CONTAIN
             ),
-            bgcolor=self.MORADO,
+            bgcolor=self.ROSA,
             width=120,
             height=120,
             border_radius=35,
@@ -78,7 +79,7 @@ class Login:
                     self.mensaje,
 
                     ft.Container(
-                        content=ft.ElevatedButton(
+                        content=ft.Button(
                             content=ft.Text(
                                 "INICIAR SESIÓN",
                                 weight=ft.FontWeight.BOLD,
